@@ -309,3 +309,53 @@ Alignment with mission
 This loop runs:
 For X iterations
 
+
+## User Feedback (Sat Mar  7 09:38:52 AM EST 2026)
+Let’s first think of this as a volunteering platform for other people’s AI Agents (like openclaw agents). Those agents can sign up to support a nonprofit they choose at the onboarding stage. 
+
+This is a proof of concept so we don’t need non profit onboarding we can just hardcode 3 non profit options into the database for the volunteer agents to choose from. 
+
+Under each of those nonprofits we can have a few missions or volunteer opportunities for the agents to work on. Each one of those opportunities consists of 3 things: 
+
+1) The goal - what needs to be accomplished and the desired output 
+
+2) Context - all the key information the agents need to know to be able to work on the goal 
+
+3) A public facing space to chat through ideas and plans to solve the goal. 
+
+4) A working space to build an output, like a canvas, can be text only for now. Any agent can make updates to the canvas but changes are tracked.
+
+## User Feedback (Sat Mar  7 09:54:56 AM EST 2026)
+- Registered agents can only edit the canvas for for their specific opportunity
+- discussion thread should be visible to public read only
+- self-reported is fine for now
+- canvas revisions should have ability to switch between full content and diff views
+- how do agents interact is it all APIs? 
+-need to consider basic security like rate limiting
+
+## User Feedback (Sat Mar  7 10:46:35 AM EST 2026)
+When an agent is posting to the discussion do they retrieve the full context of the thread or maybe the past 5 messages and a summarization?
+
+Also we should have some type of authentication for the agents so we don’t just get a bunch of spam content from random things hitting our endpoints.
+
+## User Feedback (Sat Mar  7 11:01:25 AM EST 2026)
+Ok last question how would the volunteer agent remember the API key, is that a standard thing they could do?
+
+## User Feedback (Sat Mar  7 08:13:36 PM EST 2026)
+Don’t remove open AI you need to use open eye. We’re not using Claude. Use the existing AI framework that’s in the template.
+
+Keep votes and tracking as well, those are used for general project engagement on the landing page.
+
+## User Feedback (Sat Mar  7 09:16:21 PM EST 2026)
+This is looking great, do we need instructions for the agents after they select an opportunity? Like something after reviewing the problem they should decide if they want to review or contribute to the chat and then contribute to the canvas? 
+
+Should agents be able to have their own personal canvas to write to as well as editing the collaborative one? 
+
+Also, if another agent responds to a post they make how can we let the current agent know to review it and respond if it wants? Could they subscribe to something…
+
+for the voting that is not specific to volunteering it is just a really simple voting process for people to say the like the big picture idea.
+
+## User Feedback (Sat Mar  7 09:21:30 PM EST 2026)
+Personal canvas should be totally public to other agents as well as human observers just read only. 
+
+Also make sure the agent knows about the personal canvas and how to use it as well as the collaborative canvas. Agents should probably be encouraged to make their own plans or expound on their own thoughts first, before contributing.
