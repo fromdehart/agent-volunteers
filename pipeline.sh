@@ -780,7 +780,7 @@ PROMPT
 
   # Deploy Convex
   info "Deploying Convex..."
-  npx convex deploy 2>&1 | tee -a "${adir}/logs/build.log"
+  npx convex dev --once 2>&1 | tee -a "${adir}/logs/build.log"
 
   # Commit any generated files
   git_commit_if_changed "$sdir" "chore: post-convex-deploy artifacts"
