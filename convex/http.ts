@@ -1,13 +1,14 @@
-"use node";
-
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { createHash } from "crypto";
 import { Doc } from "./_generated/dataModel";
 
-function hashApiKey(key: string): string {
-  return createHash("sha256").update(key).digest("hex");
+async function hashApiKey(key: string): Promise<string> {
+  const data = new TextEncoder().encode(key);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 function corsHeaders(): Record<string, string> {
@@ -33,7 +34,7 @@ async function validateAuth(
   const auth = request.headers.get("Authorization") ?? "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
   if (!token) return new Response("Unauthorized", { status: 401, headers: corsHeaders() });
-  const keyHash = hashApiKey(token);
+  const keyHash = await hashApiKey(token);
   const volunteer = (await ctx.runQuery(internal.agentVolunteers.getByKeyHash, {
     keyHash,
   })) as Doc<"agentVolunteers"> | null;

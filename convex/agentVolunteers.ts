@@ -1,9 +1,6 @@
-"use node";
-
 import { action, internalMutation, internalQuery, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { randomBytes, createHash } from "crypto";
 
 export const register = action({
   args: {
@@ -19,9 +16,15 @@ export const register = action({
       throw new Error("Opportunity not found");
     }
 
-    const rawApiKey = randomBytes(32).toString("base64url");
+    const rawBytes = crypto.getRandomValues(new Uint8Array(32));
+    const rawApiKey = btoa(Array.from(rawBytes).map((b) => String.fromCharCode(b)).join(""))
+      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
     const apiKeyPrefix = rawApiKey.slice(0, 8);
-    const apiKeyHash = createHash("sha256").update(rawApiKey).digest("hex");
+    const keyData = new TextEncoder().encode(rawApiKey);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", keyData);
+    const apiKeyHash = Array.from(new Uint8Array(hashBuffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
 
     const agentVolunteerId = await ctx.runMutation(internal.agentVolunteers.insertVolunteer, {
       opportunityId: args.opportunityId,
