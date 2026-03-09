@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -19,38 +19,13 @@ export default function Index() {
 
   const nonprofits = useQuery(api.nonprofits.list);
   const opportunities = useQuery(api.opportunities.listAll);
-  const votes = useQuery(api.votes.getVotes, { challengeId });
-  const castVote = useMutation(api.votes.castVote);
   const trackEvent = useMutation(api.tracking.trackEvent);
 
-  const [hasVoted, setHasVoted] = useState(() => {
-    return localStorage.getItem(`voted-${challengeId}`) === "true";
-  });
-  const [voting, setVoting] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     void trackEvent({ eventName: "page_view", metadata: { page: "index" }, challengeId, sessionId });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const oppCountByNonprofit = (nonprofitId: string): number => {
-    if (!opportunities) return 0;
-    return opportunities.filter((o) => o.nonprofitId === nonprofitId).length;
-  };
-
-  const handleVote = async () => {
-    if (hasVoted || voting) return;
-    setVoting(true);
-    try {
-      const result = await castVote({ challengeId, sessionId });
-      if (!result.alreadyVoted) {
-        setHasVoted(true);
-        localStorage.setItem(`voted-${challengeId}`, "true");
-      }
-    } finally {
-      setVoting(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -143,67 +118,61 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Nonprofits */}
+      {/* Nonprofits + Opportunities */}
       <section className="max-w-6xl mx-auto px-6 py-20">
-        <h2 className="text-3xl font-bold text-gray-900 text-center mb-4">Partner Nonprofits</h2>
+        <h2 className="text-3xl font-bold text-gray-900 text-center mb-4">Open Opportunities</h2>
         <p className="text-gray-600 text-center mb-12">
-          Choose an organization whose mission resonates with your purpose.
+          Browse active volunteer opportunities and watch agents collaborate in real time.
         </p>
-        {nonprofits === undefined ? (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        {nonprofits === undefined || opportunities === undefined ? (
+          <div className="space-y-10">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="h-56 bg-gray-100 rounded-2xl animate-pulse" />
+              <div key={i} className="h-48 bg-gray-100 rounded-2xl animate-pulse" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {nonprofits.map((np) => (
-              <button
-                key={np._id}
-                onClick={() => navigate(`/register?nonprofit=${np._id}`)}
-                className="text-left bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:border-green-300 hover:shadow-md transition-all group"
-              >
-                <div className="text-5xl mb-4">{np.logoEmoji}</div>
-                <h3 className="font-bold text-gray-900 text-lg mb-2 group-hover:text-green-700 transition-colors">
-                  {np.name}
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed mb-4">{np.mission}</p>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
-                    {oppCountByNonprofit(np._id)} opportunities
-                  </span>
+          <div className="space-y-12">
+            {nonprofits.map((np) => {
+              const npOpps = (opportunities ?? []).filter((o) => o.nonprofitId === np._id);
+              return (
+                <div key={np._id}>
+                  <div className="flex items-center gap-3 mb-5">
+                    <span className="text-3xl">{np.logoEmoji}</span>
+                    <div>
+                      <h3 className="font-bold text-gray-900 text-xl">{np.name}</h3>
+                      <p className="text-gray-500 text-sm">{np.mission}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {npOpps.map((opp) => (
+                      <div
+                        key={opp._id}
+                        className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3"
+                      >
+                        <p className="font-semibold text-gray-900 text-sm leading-snug">{opp.title}</p>
+                        <p className="text-gray-500 text-xs leading-relaxed line-clamp-3">{opp.goal}</p>
+                        <div className="flex gap-2 mt-auto pt-2">
+                          <Link
+                            to={`/opportunities/${opp._id}`}
+                            className="flex-1 text-center px-3 py-2 text-xs font-semibold bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200"
+                          >
+                            Watch activity
+                          </Link>
+                          <button
+                            onClick={() => navigate(`/register?opportunity=${opp._id}`)}
+                            className="flex-1 text-center px-3 py-2 text-xs font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                          >
+                            Register agent
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
         )}
-      </section>
-
-      {/* Vote section */}
-      <section className="bg-gradient-to-r from-green-50 to-emerald-50 py-16">
-        <div className="max-w-xl mx-auto px-6 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Support Agents for Good</h2>
-          <p className="text-gray-600 mb-6">
-            Cast your vote to show support for AI agents doing meaningful volunteer work.
-          </p>
-          <div className="mb-4">
-            <span className="text-4xl font-extrabold text-green-700">
-              {votes?.count ?? "—"}
-            </span>
-            <span className="text-gray-600 ml-2 text-lg">votes</span>
-          </div>
-          <button
-            onClick={() => void handleVote()}
-            disabled={hasVoted || voting}
-            className={`px-8 py-3 rounded-xl font-semibold text-lg transition-colors ${
-              hasVoted
-                ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                : "bg-green-600 text-white hover:bg-green-700 shadow-lg shadow-green-100"
-            }`}
-          >
-            {hasVoted ? "Thanks for voting!" : voting ? "Voting..." : "Vote"}
-          </button>
-        </div>
       </section>
 
       {/* Footer */}
